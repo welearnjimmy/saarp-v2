@@ -1,0 +1,80 @@
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    role ENUM('Field Agent', 'Auditor', 'Finance', 'Admin') NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE assets (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    barcode VARCHAR(100) NOT NULL UNIQUE,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    location_id INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (location_id) REFERENCES locations(id)
+);
+
+CREATE TABLE audits (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    asset_id INT NOT NULL,
+    auditor_id INT NOT NULL,
+    audit_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status ENUM('Completed', 'Pending', 'Discrepancy') NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (asset_id) REFERENCES assets(id),
+    FOREIGN KEY (auditor_id) REFERENCES users(id)
+);
+
+CREATE TABLE movements (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    asset_id INT NOT NULL,
+    from_location_id INT NOT NULL,
+    to_location_id INT NOT NULL,
+    movement_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (asset_id) REFERENCES assets(id),
+    FOREIGN KEY (from_location_id) REFERENCES locations(id),
+    FOREIGN KEY (to_location_id) REFERENCES locations(id)
+);
+
+CREATE TABLE locations (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE discrepancies (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    audit_id INT NOT NULL,
+    description TEXT NOT NULL,
+    status ENUM('Resolved', 'Unresolved') DEFAULT 'Unresolved',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (audit_id) REFERENCES audits(id)
+);
+
+CREATE TABLE reports (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    report_type ENUM('PV', 'Audit Summary', 'Discrepancy Matrix') NOT NULL,
+    generated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE photos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    audit_id INT NOT NULL,
+    photo_path VARCHAR(255) NOT NULL,
+    gps_coordinates VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (audit_id) REFERENCES audits(id)
+);
